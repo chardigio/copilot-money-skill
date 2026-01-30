@@ -5,7 +5,7 @@ description: Query and analyze personal finance data from the Copilot Money Mac 
 
 # Copilot Money
 
-Query the local SQLite database from the Copilot Money Mac app to analyze transactions, spending patterns, and account balances.
+Query local data from the Copilot Money Mac app to analyze transactions, spending patterns, account balances, investments, and budgets. Data is stored in both SQLite (transactions, balances) and Firestore LevelDB cache (recurring names, budgets, investments).
 
 ## Database Location
 
@@ -31,6 +31,7 @@ Primary table for all financial transactions.
 | category_id | TEXT | Category reference |
 | pending | BOOLEAN | Whether transaction is pending |
 | recurring | BOOLEAN | Whether transaction is recurring |
+| recurring_id | TEXT | Links to recurring definition (see Firestore) |
 | user_note | TEXT | User-added notes |
 | user_deleted | BOOLEAN | Soft-deleted by user |
 
@@ -44,6 +45,68 @@ Daily balance snapshots per account.
 | account_id | TEXT | Account reference |
 | current_balance | DOUBLE | Balance on that date |
 | available_balance | DOUBLE | Available balance |
+
+## Firestore Cache (LevelDB)
+
+Additional data is stored in **Firestore's local LevelDB cache**, not in the SQLite database.
+
+**Location:**
+```
+~/Library/Containers/com.copilot.production/Data/Library/Application Support/firestore/__FIRAPP_DEFAULT/copilot-production-22904/main/*.ldb
+```
+
+### Collections
+
+| Collection | Description |
+|------------|-------------|
+| `items` | Linked bank accounts/institutions |
+| `investment_prices` | Historical security prices |
+| `investment_performance` | TWR (time-weighted return) per holding |
+| `investment_splits` | Stock split history |
+| `securities` | Stock/fund metadata |
+| `users/.../budgets` | Budget definitions (amount, category_id) |
+| `users/.../recurrings` | Recurring transaction definitions |
+| `amazon` | Amazon order matching data |
+
+### Recurring Definitions
+
+| Field | Description |
+|-------|-------------|
+| name | Display name (e.g., "Water / Sewer", "Rent") |
+| match_string | Transaction name to match (e.g., "CHECK PAID") |
+| plaid_category_id | Category ID for the recurring |
+| state | "active" or "inactive" |
+
+### Data Not in SQLite
+
+- **Recurring names** - human-readable names like "Rent", "Netflix"
+- **Budget amounts** - monthly budget per category
+- **Investment data** - holdings, prices, performance, splits
+- **Account/institution names** - Chase, Fidelity, etc.
+- **Category names** - Restaurants, Travel, Groceries, etc.
+
+### Extracting Data from LevelDB
+
+**List all recurring names:**
+```bash
+for f in ~/Library/Containers/com.copilot.production/Data/Library/Application\ Support/firestore/__FIRAPP_DEFAULT/copilot-production-22904/main/*.ldb; do
+  strings "$f" 2>/dev/null | grep -B10 "^state$" | grep -A1 "^name$" | grep -v "^name$" | grep -v "^--$"
+done | sort -u | grep -v "^$"
+```
+
+**List all collections:**
+```bash
+for f in ~/Library/Containers/com.copilot.production/Data/Library/Application\ Support/firestore/__FIRAPP_DEFAULT/copilot-production-22904/main/*.ldb; do
+  strings "$f" 2>/dev/null
+done | grep -oE "documents/[a-z_]+/" | sort | uniq -c | sort -rn
+```
+
+**Find category names:**
+```bash
+for f in ~/Library/Containers/com.copilot.production/Data/Library/Application\ Support/firestore/__FIRAPP_DEFAULT/copilot-production-22904/main/*.ldb; do
+  strings "$f" 2>/dev/null
+done | grep -iE "^(groceries|restaurants|shopping|entertainment|travel|transportation|utilities)$" | sort -u
+```
 
 ## Common Queries
 
@@ -82,6 +145,14 @@ WHERE name LIKE '%SEARCH_TERM%' AND user_deleted = 0
 ORDER BY date DESC;
 ```
 
+### List Recurring Transactions
+```sql
+SELECT DISTINCT name, recurring_id
+FROM Transactions
+WHERE recurring = 1 AND user_deleted = 0
+ORDER BY name;
+```
+
 ## Usage
 
 Use `sqlite3` to query the database:
@@ -97,7 +168,9 @@ sqlite3 -header -column ~/Library/Group\ Containers/group.com.copilot.production
 
 ## Notes
 
-- Category IDs are opaque strings - group by them for analysis but names aren't stored locally
+- Category IDs are opaque strings - group by them for analysis (names are in Firestore cache)
 - Amounts are positive for expenses, negative for income
 - Filter `user_deleted = 0` to exclude deleted transactions
-- The database is actively used by the app; read-only access is safe
+- Both databases are actively used by the app; read-only access is safe
+- SQLite has `recurring_id` linking to Firestore recurring definitions
+- Use `strings` on LevelDB files to extract human-readable data from Firestore cache
