@@ -1,24 +1,6 @@
 # Copilot Money Skill
 
-A Claude Code plugin for querying personal finance data from the [Copilot Money](https://copilot.money) Mac app.
-
-## Install
-
-### As a Claude Code plugin (recommended)
-
-```bash
-claude plugin install copilot-money --source github:chardigio/copilot-money-skill
-```
-
-### Manual install
-
-Copy the skill to your Claude Code skills directory:
-
-```bash
-mkdir -p ~/.claude/skills/copilot-money
-curl -sL https://raw.githubusercontent.com/chardigio/copilot-money-skill/main/skills/copilot-money/SKILL.md \
-  -o ~/.claude/skills/copilot-money/SKILL.md
-```
+A Claude Code skill for querying personal finance data from the [Copilot Money](https://copilot.money) Mac app.
 
 ## What It Does
 
@@ -42,10 +24,18 @@ This skill enables Claude to access and analyze your financial data stored local
 - "What's my monthly spending trend?"
 - "Find all Amazon purchases"
 
-## Privacy
+## Data Locations
+
+**SQLite Database** (transactions, balances):
+```
+~/Library/Group Containers/group.com.copilot.production/database/CopilotDB.sqlite
+```
+
+**Firestore LevelDB Cache** (recurring names, budgets, investments):
+```
+~/Library/Containers/com.copilot.production/Data/Library/Application Support/firestore/__FIRAPP_DEFAULT/copilot-production-22904/main/*.ldb
+```
+
+## Privacy Note
 
 All data stays local - this skill queries the local databases directly on your Mac. No data is sent to external services.
-
-## License
-
-MIT
