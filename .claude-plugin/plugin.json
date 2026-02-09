@@ -1,0 +1,19 @@
+{
+  "name": "copilot-money",
+  "version": "1.0.0",
+  "description": "Query and analyze personal finance data from the Copilot Money Mac app",
+  "author": {
+    "name": "Charlie DiGiovanna",
+    "url": "https://github.com/chardigio"
+  },
+  "repository": "https://github.com/chardigio/copilot-money-skill",
+  "license": "MIT",
+  "keywords": [
+    "copilot-money",
+    "personal-finance",
+    "budgeting",
+    "transactions",
+    "sqlite",
+    "macos"
+  ]
+}
