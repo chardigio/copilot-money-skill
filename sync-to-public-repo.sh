@@ -39,8 +39,9 @@ find "$PUBLIC_REPO_DIR" -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
 mkdir -p "$PUBLIC_REPO_DIR/.claude-plugin"
 mkdir -p "$PUBLIC_REPO_DIR/skills/copilot-money"
 
-# Copy SKILL.md into the proper plugin skills directory
+# Copy skill files into the proper plugin skills directory
 cp "$SKILL_DIR/SKILL.md" "$PUBLIC_REPO_DIR/skills/copilot-money/SKILL.md"
+cp "$SKILL_DIR/README.md" "$PUBLIC_REPO_DIR/skills/copilot-money/README.md"
 
 # Generate plugin.json
 cat > "$PUBLIC_REPO_DIR/.claude-plugin/plugin.json" << 'PLUGIN_JSON'
