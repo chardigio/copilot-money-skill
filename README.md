@@ -12,28 +12,30 @@ claude plugin install copilot-money --source github:chardigio/copilot-money-skil
 
 ### Manual install
 
-Copy the skill to your Claude Code skills directory:
+Copy the skill folder (SKILL.md and scripts/) to your Claude Code skills directory:
 
 ```bash
-mkdir -p ~/.claude/skills/copilot-money
-curl -sL https://raw.githubusercontent.com/chardigio/copilot-money-skill/main/skills/copilot-money/SKILL.md \
-  -o ~/.claude/skills/copilot-money/SKILL.md
+git clone --depth 1 https://github.com/chardigio/copilot-money-skill /tmp/copilot-money-skill
+mkdir -p ~/.claude/skills
+cp -R /tmp/copilot-money-skill/skills/copilot-money ~/.claude/skills/
 ```
 
 ## What It Does
 
 This skill enables Claude to access and analyze your financial data stored locally by Copilot Money, including:
 
-- Transaction history and spending patterns
-- Account balances over time
-- Category-based expense analysis
-- Recurring transaction definitions (rent, subscriptions, etc.)
-- Budget amounts and investment data
+- Transactions with real category, account, and recurring names
+- Spending and budgets computed with the same rules as the app (checked against the app's own numbers)
+- Upcoming recurring charges, cash flow per month, and net worth today and over time
+- Investment holdings valued at live prices, and Amazon order items
+- Ad hoc SQL over one enriched SQLite file
+- A `doctor` command that cross-checks the numbers against the app
 
 ## Requirements
 
 - macOS with Copilot Money app installed
-- Copilot Money must have synced data locally (the app stores data in SQLite and Firestore LevelDB cache)
+- Copilot Money must have synced data locally (the app stores data in SQLite and a Firestore LevelDB cache)
+- Python 3 (the standard library only, nothing to install)
 
 ## Example Uses
 
@@ -41,10 +43,13 @@ This skill enables Claude to access and analyze your financial data stored local
 - "Show me my largest transactions this year"
 - "What's my monthly spending trend?"
 - "Find all Amazon purchases"
+- "Am I over budget this month?"
+- "What recurring charges are due in the next two weeks?"
+- "How has my net worth changed this year?"
 
 ## Privacy
 
-All data stays local - this skill queries the local databases directly on your Mac. No data is sent to external services.
+All data stays local. The skill reads the local files on your Mac in read-only mode and sends nothing to external services. The derived database leaves out the bank tokens that the app's cache holds.
 
 ## License
 
